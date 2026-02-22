@@ -28,7 +28,7 @@
 	<body>
 		<div class="container">
 		<h1>CS184/284A Spring 2025 Homework 1 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<div style="text-align: center;">Name: Pedro Ochoa Navarrete</div>
 
 		<br>
 
@@ -36,11 +36,10 @@
 		
 		<br>
 
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to GitHub repository: (TODO) <a href="https://github.com/cal-cs184-student/hw1-rasterizer-pedroochoa#">https://github.com/cal-cs184-student/hw1-rasterizer-pedroochoa#</a>
 
 		<figure>
 			<img src="lion.jpg" alt="Lion" style="width:50%"/>
-			<figcaption>You can add images with captions!</figcaption>
 		</figure>
 
 		<!--
@@ -50,53 +49,112 @@
 		<h2>Overview</h2>
 		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
 
-		<h2>Task 1: Drawing Single-Color Triangles</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<h2>Task 1: Drawing Single-Color Triangles(20pts)</h2>
+		<h4><u>Rasterizing Triangles Walkthrough</u></h4>
+		<p>We are given vertices that are already in screen space. If they were given in local coordinate space we would have to convert them into screen space. With these screen space coordinates of the vertices we now have to turn on the pixels where the samples are within the triangle. We can have multiple samples but for this problem we only had one which is in the middle of the pixel. If the sample, the center of the pixel, lies within the triangle we turn it on with the associating color. We test if the sample is inside the triangle using the Point-in-Triangle Test. To get over the problem of the winding order of the vertices I found that a point is in the triangle as long as the sign of the result of three line tests are all the same. In this problem any samples on the edge of the triangle are also considered inside the triangle, which means that a result of 0 from the line test would also count as inside the triangle.</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+		<h4><u>Optimizations & why my algorithm is better </u></h4>
+		<p>My algorithm finds the minimum boundary box for the triangle, and starts in the top left of the box. It then travels down the box while going left to right. My algorithm is as good as testing each sample in the entire boundary box because for every row of pixels I stop testing samples once I stop filling in pixels. In other words once I reach the end of the portion of the triangle for that row I stop and move to the next row of the boundary box because I know that there will be no more filling for the rest of that row.</p>
+		
+		<h4><u>Extra Credit:</u></h4>
+		<p>I run the Point-in-Triangle Test with each sample within the boundary box from left to right as I increment on the y axis. An optimization I made was to stop testing samples after I reach the end of the triangle on that row. I then move to the beginning of the next row, within the boundary box, and repeat the previous step.</p>
+
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-			  </tr>
-			  <tr>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
-				</td>
-				<td style="text-align: center;">
-				  <img src="lion.jpg" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="screenshot_2-16_20-1-8.png" width="400px"/>
+				  <figcaption>In the image above the pink shape in the bottom right is broken. This shape should be connected.</figcaption>
 				</td>
 			  </tr>
 			</table>
 		</div>
 		
-		<h2>Task 2: Antialiasing by Supersampling</h2>
+		<h2>Task 2: Antialiasing by Supersampling(20pts)</h2>
+		<h4><u>My Algorithm</u></h4>
+		<p>My algorithm is very similar to Task 1. I first create the boundary box around the triangle. I then traverse through all the pixels from left to right and row by row.  For each pixel I then iterate through each sample. For each sample I test if that sample is within the triangle. This process consists of 4 nested loops. If the sample is inside the triangle then we mark that sample as the passed in color. I store all this information in the provided sample_buffer. The way sample_buffer is organized is that every sample_rate*i index is a new pixel where i is an integer between 0 and width*height. I accessed the pixel index by using (y * width + x) * sample_rate. I then accessed samples by adding the appropriate offset. Once my sample_buffer is populated I grab the n samples from each pixel and calculate the average color.</p>
+
+		<h4><u>Why is supersampling useful? </u></h4>
+		<p>By averaging the color from the samples in a single pixel we achieve a smooth transition between colors and reduce aliasing artifacts. This is evident in the images where under a single sample we see jagged lines, and stair step pixels. As we increase the sample the sides become much more smoother. This is also helpful because we get smoother transitions without much more work.</p>
+
+		<h4><u>What modifications did you make to the rasterization pipeline in the process? </u></h4>
+		<p>I modified rasterized_triangle() as described in the My Algorithm section. I also set_sample_rate() and set_framebuffer_target() by updating the resizing line to take into account that sample_rate will change. I also modified resolve_to_framebuffer() to take average out the color from all the samples. I did this by separating the rgb from each sample, and taking the average of each one. I then created this new average to its own color, and set it to the pixel in the framebuffer.</p>
+		
+		<h4><u>Explain how you used supersampling to antialias your triangles.</u></h4>
+		<p>I used supersampling to antialias my triangles by adding more samples to each pixel. Each sample captured the color of that region within the triangle. Then using the variety of color from the samples I was able to find an average color which would be used to fill that pixel. The number of samples per pixel were decided by sample_rate which its square root gave us the grid of evenly spaced samples. This approach gave us smooth transitions between colors, edges, and reduced jagged edges in the final image.</p>
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+            <table style="width: 100%; text-align: center; border-collapse: collapse;">
+              <tr>
+                <td style="text-align: center;">
+                  <img src="screenshot_2-17_16-54-20.png" width="400px"/>
+                  <figcaption>1 Sample per Pixel</figcaption>
+                </td>
+                <td style="text-align: center;">
+                  <img src="screenshot_2-17_16-54-39.png" width="400px"/>
+                  <figcaption>4 Sample per Pixel:</figcaption>
+                </td>
+              </tr>
+              <tr>
+                <td style="text-align: center;">
+                  <img src="screenshot_2-17_16-54-53.png" width="400px"/>
+                  <figcaption>16 Sample per Pixel:</figcaption>
+                </td>
+              </tr>
+            </table>
+        </div>
+
+
+
+
+		<h2>Task 3: Transforms(10pts)</h2>
+		<h4><u>What I made</u></h4>
+		<p>I made my robot dance. I did this by rotating his arms so they are in the air. I also made his torso slimmer so it can look more proportional. </p>
+		
+		<h4><u>What I learned</u></h4>
+		<p>From this task I gained a stronger understanding of the hierarchy structure that we covered in class. I was also suprised to learn that all the shapes were made of triangles. I expected it to see every type of shape that would then be later broken down into a triangle in the pipeline. Fortunatley, and shape can be decomposed into triangles. I did find it confusing that the preview of the robot in Visual Studios was different than the image produced when terminal commands are ran. I will have to look deeper into this issue.</p>
+
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+					<img src="screenshot_2-19_14-8-46.png" width="400px"/>
+					<figcaption>Dancing Robot</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
+
+		<h2>Task 4: Barycentric coordinates(10pts)</h2>
+		<h4><u>Explain Barycentric Coordinates in Your Own Words</u></h4>
+		<p>Barycentric coordinates is an interpolation method. The way it works is that each vertex is associated with a color. For example, below the right image has red, blue and green as the color for each respective vertex. As we can see in Barycentric Coordinates we create a smooth transition between the three colors within the triangle. Wherever the sample lands in the triangle is the color it will take for that pixel, assuming we are using a single sample per pixel. A more technical explanation of Barycentric Coordinates is that wherever the sample lands we take a ratio of the area to each vertex and the total area of the triangle. We will then use this ratio to weight the average of the three vertex colors. </p>
+		
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+					<img src="screenshot_2-19_15-43-19.png" width="400px"/>
+					<figcaption>svg/basic/test7.svg</figcaption>
+				  </td>
+				  <td style="text-align: center;">
+					<img src="screenshot_2-19_17-25-54.png" width="400px"/>
+					<figcaption>Supporting Image</figcaption>
+				  </td>
+			  </tr>
+			</table>
+		</div>
+
+		<h2>Task 5: "Pixel sampling" for texture mapping(15pts)</h2>
+		<h4><u>What is pixel sampling in my own words and how I implemented it to perform texture mapping</u></h4>
+		<p>... </p>
+
+		<h4><u>Comment on the relative differences. Discuss when there will be a large difference between the two methods and why</u></h4>
+		<p>...</p>
+
+		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping(25pts)</h2>
 		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
-		<h2>Task 3: Transforms</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>Task 4: Barycentric coordinates</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>Task 5: "Pixel sampling" for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>Task 6: "Level Sampling" with mipmaps for texture mapping</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-		<h2>(Optional) Task 7: Extra Credit - Draw Something Creative!</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
+		<!--
 		<h2>Additional Notes (please remove)</h2>
 		<ul>
 			<li>You can also add code if you'd like as so: <code>code code code</code></li>
@@ -107,6 +165,7 @@
 				</ul>
 			</li>
 		</ul>
+		-->
 		</div>
 	</body>
 </html>
