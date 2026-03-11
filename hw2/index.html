@@ -28,15 +28,15 @@
 	<body>
 		<div class="container">
 		<h1>CS184/284A Spring 2025 Homework 2 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<div style="text-align: center;">Name: Pedro Ochoa Navarrete</div>
 
 		<br>
 
-		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to webpage: <a href="https://cal-cs184-student.github.io/hw-webpages-pedrochoajr/hw2/index.html">https://cal-cs184-student.github.io/hw-webpages-pedrochoajr/hw1/index.html</a>
 
 		<br>
 		
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		Link to GitHub repository:<a href="https://github.com/cal-cs184-student/hw2-meshedit-pedro">https://github.com/cal-cs184-student/hw2-meshedit-pedro</a>
 
 		<figure>
 			<img src="teapot.png" alt="Teapot" style="width:50%"/>
@@ -48,69 +48,188 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+			In this assignment, I implemented several fundamental mesh processing operations like Bezier curve and surface evaluation using de Casteljaus algorithm, area-weighted vertex normals for smooth shading, and topological mesh operations such as edge flips and edge splits using the halfedge data structure. What I found more interesting than anything else was how intuitive the halfedge structure is. In class, it seemed like a lot of moving parts, many that seemed redundant, but as I went through the last three problems, I realized that each of these has a purpose. I also realized how nicely it fleshes out with the model and really appreciate its complicated design to make working with the triangle mesh so simple.
 
 		<h2>Section I: Bezier Curves and Surfaces</h2>
 
 		<h3>Part 1: Bezier curves with 1D de Casteljau subdivision</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>
+			De Casteljau's algorithm is used to produce Bezier curves. This is done by starting off with a set of n points. From these n points, we apply linear 
+			interpolation on the points with a parameter t(where t is between 0 and 1) and end up with n-1 points. After repeating the linear interpolation on the set of 
+			points created by the previous round of linear interpolation, we end up with a single point. This single point is actually on the Bezier curve, so to produce 
+			the entire curve, rather than a single point, we must repeat this process with several values of t to obtain the curve.
+		</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+		<p>
+			The implementation of de Casteljau's algorithm was very simple and straightforward to implement since it was broken down to just doing a single step. The base 
+			case is that there are at least 2 points because linear interpolation requires a pair of points for it to work. After defining my base case I noted that the 
+			linear interpolation function is (1-t)*points[i] + t*points[i+1] where i is the index of a array called points, which holds all the points given for that step. 
+			I interpolate two pairs of nodes and store the result in a return array. I repeated this until I went through all the elements in points. This makes it so that if I 
+			begin with n points, then by the end of the step, I have n-1 new points from interpolation, and am able to repeat this call until I have a single point.
+		</p>
+		
+		<p>Screenshots of each step of de Casteljau's algorithm</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="step0.png" width="400px"/>
+				  <figcaption>first step in algorithm.</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="step1.png" width="400px"/>
+				  <figcaption>second step in algorithm.</figcaption>
 				</td>
 			  </tr>
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="step2.png" width="400px"/>
+				  <figcaption>third step in algorithm.</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="teapot.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="step3.png" width="400px"/>
+				  <figcaption>fourth step in algorithm.</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="step4.png" width="400px"/>
+				  <figcaption>fifth step in algorithm.</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="step4.png" width="400px"/>
+				  <figcaption>last step in algorithm, point from bezier curve revealed</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="pt1Modified.png" width="400px"/>
+				  <figcaption> different Bezier curve with modified t</figcaption>
 				</td>
 			  </tr>
 			</table>
 		</div>
 
-		<h3>Part 2: Bezier surfaces with separable 1D de Casteljau</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
+		<h3>Part 2: Bezier surfaces with separable 1D de Casteljau</h3>
+		<p>
+			De Casteljau's algorithm extends naturally from Bezier curves to Bezier surfaces. Since Bezier curves are surfaces, we also have to apply the interpolation in 
+			both dimensions. In Bezier curves, we use the parameter t, but to accommodate for the second dimension, we will use the parameters u and v. First, I evaluated 
+			the Bezier curve(using de Casteljau's algorithm) along one dimension using the parameter u. I then applied a Bezier curve to the result of the previous step 
+			with the parameter v. This produces a single point on the Bezier surface.
+		</p>
+		<p>
+			The implementation consisted of 3 main components:
+			<br>
+			<table style="width: 100%; left: center; border-collapse: collapse;">
+				<tr><td>1. evaluateStep(points, t), identically to part 1 it returns a step of De Casteljau's algorithm</td></tr>
+				<tr><td>2. evaluate1D(points, t), this runs the De Casteljau's algorithm, by calling evaluateStep repeatedly</td></tr>
+				<tr><td>3. evaluate(u, v), returns point on bezier surface </td></tr>
+			</table>
+			<br>
+			In evaluate (u, v), it first evaluates each row of the controlPoints at parameter u using the evaluate1D function. This produces a set of points that is stored in a vector called collapsedRows. I then call evaluate1D again on collapsedRows at parameter v to obtain the final point, which will be the return value of evaluate.
+		</p>
+
+		<img src="pt2.png" width="400px"/>
+		
 		<h2>Section II: Triangle Meshes and Half-Edge Data Structure</h2>
 
 		<h3>Part 3: Area-weighted vertex normals</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>In my implementation to compute the area-weighted normal vectors at vertices, I traversed the faces incident to each vertex using the halfedge structure. I got my starting position by first calling halfedge(). From there, I set up my loop so that I get each point using h->vertex()->position, h->next()->vertex()->position, h->next()->next()->vertex()->position. This would return the three vertices of the current face. With these three points, I constructed two edge vectors from the vertex we are traveling around. While preparing for this question and my previous classes, I found that the cross product of two triangle edges produces a vector whose magnitude is proportional to the triangle's area while still in the direction of the face normal. With this information in mind, I knew I would get the same information as finding the triangle area. I summed the cross product into a vector called returnVector. I then repeated this process for each face around the main vertex. I made sure to stop once I returned to the starting face, and skip when h->face()->isBoundary(). After visiting all adjacent faces, I normalized the returnVector to obtain a unit normal, which was then returned.</p>
+		<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			<tr>
+				<td style="text-align: center;">
+				  <img src="pt3NoQ.png" width="400px"/>
+				  <figcaption>teapot shading without vertex normals</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="pt3WithQ.png" width="400px"/>
+				  <figcaption>teapot shading with vertex normals</figcaption>
+				</td>
+			</tr>
+		</table>
+
+
+
+
+
+
+
+
+
+
 
 		<h3>Part 4: Edge flip</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>My implementation started with a diagram. I drew two triangles with a shared edge. From here, I began to label the components that appear in a half-edge data structure, and drew it again after flipping the shared edge. This really helped me visualize the problem and helped me stay organized. I added the image below. From here, it was quite straightforward. I first defined every single component of the half-edge structure. This included 4 vertices, 5 edges, and 6 half edges. I then updated the halfedges next, twin, vertex, edge, and face pointers so that the two original triangles were rewired into the new flipped configuration. This meant that I also had to fix the pointers in the affected vertices, faces, and edges. I then realized that some of the halfedges did not have to be reassigned. For example, in my diagram, h0_1 continued to be part of the same face, but I did have to change h1_2 to be with the same face. After my implementation was successful, I removed all extra components I defined in the beginning that I did not need to use(e.g. the other edges 4 edges). Overall, this portion was straightforward, and I was able to stay organized using the diagram below and notes from class. I will say that I spent considerable time reading halfEdgeMesh.h to understand what component I had to update or be aware of for each class.</p>
+
+		<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="flip0.png" width="400px"/>
+				  <figcaption>No flip</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="flip2.png" width="400px"/>
+				  <figcaption>flip</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="organizationTask4.png" width="400px"/>
+				  <figcaption>My way of staying organized</figcaption>
+				</td>
+			  </tr>
+		</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		<h3>Part 5: Edge split</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p>Similar to the previous problem, I first started with a diagram to make sure that I knew what was going on with the problem. I attached a picture of the diagram below. After doing the previous problem, I was much more comfortable working with the halfedge structure. I also started this problem by listing all the existing components of the structure. This includes 4 vertices, 6 halfedges, 2 faces, and 5 edges. Using my diagram, I began to define the components I knew I would need. This included a new vertex, 6 halfedges, 2 faces, and 3 edges. The reason I did not create more components is that I reused some of the original ones. From here, I followed the same steps as the previous problem. Once the new midpoint vertex was created, I reassigned all affected halfedges so that their next, twin, vertex, edge, and face pointers matched the new connectivity. I also updated halfedge pointers stored in the affected faces, edges, and vertices. In particular, I made sure that the new vertex's halfedge pointed along the original split edge. Similar to the last problem, I did not have any debugging problems with this problem besides the occasional syntax problem. The diagram helped me stay organized and know what each component was doing. Since my diagram can be generalized to any split edge problem, I was even able to name the components by the variables in the diagram, which helped visualize the problem. Since I had read the halfEdgeMesh.h the last problem, I was very familiar with the syntax and what each part of the data structure consisted of. Overall, I would say this problem was primarily bookkeeping.  </p>
 
-		<h3>Part 6: Loop subdivision for mesh upsampling</h3>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="before1.png" width="400px"/>
+				  <figcaption>before edge splits</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="after1.png" width="400px"/>
+				  <figcaption>after edge splits</figcaption>
+				</td>
+			  </tr>
 
-		<h2>(Optional) Section III: Potential Extra Credit - Art Competition: Model something Creative</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="before2.png" width="400px"/>
+				  <figcaption>before a combination of both edge splits and edge flips</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="after2.png" width="400px"/>
+				  <figcaption>after a combination of both edge splits and edge flips</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="organizationpt5.png" width="400px"/>
+				  <figcaption>My way of staying organized</figcaption>
+				</td>
+			  </tr>
+		</table>
 
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
 		</div>
 	</body>
 </html>
