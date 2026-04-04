@@ -28,12 +28,13 @@
 	<body>
 		<div class="container">
 		<h1>CS184/284A Spring 2025 Homework 3 Write-Up</h1>
-		<div style="text-align: center;">Names: </div>
+		<div style="text-align: center;">Name: Pedro Ochoa Navarrete </div>
 
 		<br>
 
 		Link to webpage: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
-		Link to GitHub repository: (TODO) <a href="https://cs184.eecs.berkeley.edu/sp25">cs184.eecs.berkeley.edu/sp25</a>
+		<br>
+		Link to GitHub repository: <a href="https://github.com/cal-cs184-student/hw3-pathtracer-pedro-cs184">https://github.com/cal-cs184-student/hw3-pathtracer-pedro-cs184</a>
 		
 		<figure>
 			<img src="cornell.png" alt="Cornell Boxes with Bunnies" style="width:70%"/>
@@ -45,62 +46,170 @@
 		-->
 
 		<h2>Overview</h2>
-		Give a high-level overview of what you implemented in this homework. Think about what you've built as a whole. Share your thoughts on what interesting things you've learned from completing the homework.
+		In this homework I implemented 
 
 		<h2>Part 1: Ray Generation and Scene Intersection</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p><b>Walk through the ray generation and primitive intersection parts of the rendering pipeline.</b></p>
+		<p>
+			In the rendering pipeline, ray generation is an integral part of the process. It is responsible for mapping each pixel in the image to a ray in the 3D scene. It accomplishes this by constructing a ray that originates at the camera and passes through a corresponding point on the image plane, and then into the 3D scene. The ray represents the path where the color is determined.
+			<br>
+			The process of ray generation starts by first normalizing our pixel coordinates. We then center our image by offsetting our coordinates by 0.5, and multiplying by 2 so our coordinates space is [1,1]. We then scale by utlizing the field of view, which gives us coordinates (centered_x * tan(hFov / 2), centered_y * tan(vFov / 2)). Using this, we construct a direction vector, transform it into world space using the camera-to-world matrix, and normalize it. The normalized direction will then be used to build our ray, and after setting its bounds. We can now use this ray in the 3D scene to detect intersections.
+		</p>
 
-		<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+		<p>
+			To actually know what the ray crosses and the properties of it, we need to know the intersection of the ray and the element. This is done by tracing the ray and solving for a value t of the ray equation r(t) = o + td, where t indicates a valid point of intersection. Rather than checking all elements against the ray equation, we group the elements together in boundary boxes and check the boxes. This is described in more depth in Part 2. For primitive intersections, different methods are used depending on the geometry, but they all must satisfy the ray equation. Below, I describe the triangle and sphere method. If any object is intersected, the closest object is recorded, along with its surface normal and material properties. If no intersection is found, then nothing is recorded.
+		</p>
+
+		<p><b>Explain the triangle intersection algorithm you implemented in your own words.</b></p>
+		<p>
+            My triangle intersection algorithm is the Möller–Trumbore algorithm. I first defined my triangles by identifying two edges, e1 and e2. The determinant is then calculated by taking the dot product of e1 and the result of the cross product of the direction of the ray. We determine that the ray is not parallel to the triangle by confirming that the determinant is greater than EPS_F.  
+            Now that we have confirmed that the triangle and ray are not parallel then we can solve for u to solve the barycentric coordinates. This is done by taking the dot product of the  difference between the origin of the ray and point 1, all divided by the determinant. 
+            We then solve for v by computing dot(cross(t_vector, e1), r.d) / determinant, where r.d is the direction of the ray and t_vector is the differnce between the origin ray and point 1.
+            Now we solve for our last variable t. We do this by computing dot(e2, v_vector) / determinant, where v_vector is the cross of cross(t_vector, e1).
+
+            We can finally check that u and v are both greater than 0 and the sum of u and v is less than or equal to 1, which confirms the point is within the triangle. We also confirm that t is within the rays' bounds. Finally, the closest valid intersection is kept, and the surface normal is computed using barycentric interpolation of the vertex normals.
+		</p>
+
+		<p style="text-align: center;">Images with normal shading</p>
 		<div style="display: flex; flex-direction: column; align-items: center;">
 			<table style="width: 100%; text-align: center; border-collapse: collapse;">
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Part1BunnyImage.png" width="400px"/>
+				  <figcaption>Bunny Rendering</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Part1CowImage.png" width="400px"/>
+				  <figcaption>Cow Rendering</figcaption>
 				</td>
 			  </tr>
 			  <tr>
 				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Part1SpheresImage.png" width="400px"/>
+				  <figcaption>Sphere Rendering</figcaption>
 				</td>
 				<td style="text-align: center;">
-				  <img src="cornell.png" width="400px"/>
-				  <figcaption>Caption goes here.</figcaption>
+				  <img src="Part1TeapotImage.png" width="400px"/>
+				  <figcaption>Teapot Rendering</figcaption>
 				</td>
 			  </tr>
 			</table>
 		</div>
 		
 		<h2>Part 2: Bounding Volume Hierarchy</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p><b>Walk through your BVH construction algorithm. Explain the heuristic you chose for picking the splitting point.</b></p>
+		<p>
+			For my BVH construction algorithm, I begin by first iterating through a range of primitives and enclosing them in a single bounding box. I then use this bounding box to declare a new node for the BVH. I then check if the number of primitives is less than or equal to max_leaf_size. If so, I return the node, and it will be considered a leaf. 
+
+			If not, I have to split the primitives. I start by creating a second bounding box to enclose their the spatial distribution of the primitves whcih can be found through the centroids. So the second bounding box holds all the primitives' centroids. I then choose an axis by selecting the one with the longest extent within the centroid bounding box. Now that I know on what axis I want to split on I choose the split position as the midpoint of the centroid bounding box along the chosen axis.
+
+			If it is the case that all primitives are on one side, I split the list of elements in half regardless of their location, which is an aspect of my heuristic that can be improved. When I split in either case, I set a new midpoint of the list of primitives. I then recursively call the function on these two groups, assigning one as the left child (from start to midpoint) and the other as the right child (from midpoint to end).
+		</p>
+		
+		<p><b>Compare rendering times on a few scenes with moderately complex geometries with and without BVH acceleration.</b></p>
+		<p>
+		</p>
+		The difference in rendering times between .dae files with and without BVH acceleration is very noticeable. I initially expected maybe a 5 to 10 second difference between methods, but even for a small .dae like the cow, rendering without BVH took around 30 seconds, on the other hand with acceleration it was only a fraction of a second. The difference was even more pronounced as geometric complexity increased. When I rendered beast.dae using BVH acceleration, it only took about a second. However, with simple rendering, I had to cancel the operation because my laptop's fan began too run too loud, and I was concerned about damage to my old laptop.
+		These results make sense because BVH groups primitives into hierarchical bounding boxes, allowing large portions of the scene to be skipped during intersection tests. As a result, many primitives are never evaluated. However, in simple rendering every ray is tested against every primitive which wastes a lot of time consdering that he majority of the primitives will not be in the rays path.
+
+
+		<p style="text-align: center;">Normal shading with BVH for a large files</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Part2Head.png" width="400px"/>
+				  <figcaption>Head BVH Rendering</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="Part2DragonImage.png" width="400px"/>
+				  <figcaption>Dragon BVH Rendering</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="Part2Peter.png" width="400px"/>
+				  <figcaption>Peter BVH Rendering</figcaption>
+				</td>
+			  </tr>
+			</table>
+		</div>
 
 		<h2>Part 3: Direct Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p><b>Walk through both implementations of the direct lighting function.</b></p>
+		<p><b>Compare the results between uniform hemisphere sampling and lighting sampling in a one-paragraph analysis.</b></p>
+		<p>
+			For the direct lighting hemisphere method, I began by finding the pdf. Since I am sampling uniformly across the hemisphere, I knew that the pdf would be constant at 1/2pi. In a loop that ran num_samples time I sampled in a random direction over the hemisphere using get_sample(). I then had to convert it into world coordinates since rays are traced in world space. 
+			I then created a shadow ray in that direction with min_t = EPS_F in so the ray does not hit the surface due to floating point error. I then trace the ray into the scene using intersect, which returns what the ray intersected. If the ray intersection returns a nonzero emission, I know that it hit a light source. Otherwise, it did not, and no light is contributed from that direction. 
+			I then use the rendering equation to compute how much light is contributed based on the BSDF, the emitted radiance, the cosine term, and the pdf, and add this contribution to a running total. After processing all samples, I return the average of the running total.</p>
+		<p>
+			Rather than sampling random directions the direct lighting importance instead samples the light directly. In a loop that itereated through all the light sources in the scene I first check if the light source is a delta light(directional light). If so, I only take a single sample since delta lights do not have spatial extent, other wise I took ns_area_light samples. 
+			Then, for each sample, I calculated the direction from the hit point to the sampled point on the light, the distance to the sampled light, pdf of the sample light, and the emitted radiance. I then convert the direction ot sample point on the light from the hit point to local coordinates since bsdf evaluation is simpler. I first checked if the incoming sample was above the hitpoint; if not, then the sample does not contribute. I then created a ray shadow similar to the previous method to see if there is any object between the hitpoint and the light. If it does not, I add this light contribution exactly like in the previous section and return the average of the light contribution from the sampled light sources.
+		</p>
 
-		<h2>Part 4: Global Illumination</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p><b>Compare the results between uniform hemisphere sampling and lighting sampling in a one-paragraph analysis.</b></p>
+		<p>
+			The difference between uniform hemisphere sampling and lighting sampling is pretty noticeable. Lighting sampling produces much smoother and more impressive renderings than uniform hemisphere sampling. This makes sense because uniform hemisphere sampling misses a lot of light points compared to uniform random sampling. However, light sampling hits every single light, and breaks down which light can actually contribute through ray shadows. This produces an image that is smooth and completely lit. The key is that hemisphere sampling is taking random samples all over, but light sampling takes samples from the actual light source, which produces a much more realistic image. Overall, lighting sampling is much more efficient because it avoids wasting samples on directions that do not contribute to the final lighting.
+		</p>
 
-		<h2>Part 5: Adaptive Sampling</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+		<p><b>Focus on one particular scene with at least one area light and compare the noise levels in soft shadows when rendering with 1, 4, 16, and 64 light rays (the -l flag) and with 1 sample per pixel (the -s flag) using light sampling, not uniform hemisphere sampling.</b></p>
 
-		<h2>(Optional) Part 6: Extra Credit Opportunities</h2>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-		
-		<h2>Additional Notes (please remove)</h2>
-		<ul>
-			<li>You can also add code if you'd like as so: <code>code code code</code></li>
-			<li>If you'd like to add math equations, 
-				<ul>
-					<li>You can write inline equations like so: \( a^2 + b^2 = c^2 \)</li>
-					<li>You can write display equations like so: \[ a^2 + b^2 = c^2 \]</li>
-				</ul>
-			</li>
-		</ul>
+		<p style="text-align: center;">Noise Level Comparison</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="l1.png" width="400px"/>
+				  <figcaption>1 Light Ray</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="l4.png" width="400px"/>
+				  <figcaption>4 Light Ray</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="l16.png" width="400px"/>
+				  <figcaption>16 light ray</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="l64.png" width="400px"/>
+				  <figcaption>64 light ray</figcaption>
+				</td>
+			  </tr>
+
+			</table>
+		</div>
+
+
+
+		<p style="text-align: center;">images rendered with both implementations of the direct lighting function</p>
+		<div style="display: flex; flex-direction: column; align-items: center;">
+			<table style="width: 100%; text-align: center; border-collapse: collapse;">
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="CBbunny_H_16_8.png" width="400px"/>
+				  <figcaption>Bunny with Uniform Hemisphere Smapling</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="CBbunny_H_64_32.png" width="400px"/>
+				  <figcaption>Bunny with Importance Smapling Lights</figcaption>
+				</td>
+			  </tr>
+			  <tr>
+				<td style="text-align: center;">
+				  <img src="blob_bad.png" width="400px"/>
+				  <figcaption>Blob with Uniform Hemisphere Smapling</figcaption>
+				</td>
+				<td style="text-align: center;">
+				  <img src="blob_good.png" width="400px"/>
+				  <figcaption>Blob with Importance Smapling Lights</figcaption>
+				</td>
+			  </tr>
+
+			</table>
+		</div>
+
 		</div>
 	</body>
 </html>
